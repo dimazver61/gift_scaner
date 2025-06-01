@@ -4,8 +4,6 @@ from urllib.parse import urlparse, parse_qs
 
 from telegram.client import Telegram
 
-from src.types.gifts import Gift
-
 
 class TgClient:
     def __init__(self, phone, api_id=27107768, api_hash="18b0bf93dbf4d97d72024ca8ff40f66a"):
@@ -84,11 +82,11 @@ class TgClient:
         query_params = parse_qs(parsed_url.fragment)
         return query_params["tgWebAppData"][0]
 
-    def get_available_gifts(self) -> list[Gift]:
+    def get_available_gifts(self) -> list[dict]:
         m = self.tg.call_method("getAvailableGifts")
         m.wait()
 
-        return [Gift(**g) for g in m.update["gifts"]]
+        return m.update["gifts"]
 
     def send_message(self, chat_id, text):
         send_message_result = self.tg.send_message(

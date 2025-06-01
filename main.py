@@ -14,28 +14,28 @@ if __name__ == '__main__':
     client = TgClient(args.phone)
 
     gifts = client.get_available_gifts()
-    cur_gifts_id = [g.id for g in gifts if g.remaining_count != 0]
-
+    # cur_gifts_id = [g["id"] for g in gifts if g["remaining_count"] != 0]
+    cur_gifts_id = []
     while 1:
         try:
             gifts = client.get_available_gifts()
-            new_gifts = [g for g in gifts if g.remaining_count != 0]
-            new_gifts_id = [g.id for g in new_gifts]
+            new_gifts = [g for g in gifts if g["remaining_count"] != 0]
+            new_gifts_id = [g["id"] for g in new_gifts]
 
             for ngi in new_gifts_id:
                 if ngi not in cur_gifts_id:
 
                     print("новый гифт")
                     cur_gifts_id.append(ngi)
-                    gift = [ng for ng in new_gifts if ng.id == ngi][0]
+                    gift = [ng for ng in new_gifts if ng["id"] == ngi][0]
 
-                    text = f"New Gift | {gift.star_count} STARS"
+                    text = f"New Gift | {gift['star_count']} STARS"
 
                     time.sleep(2)
                     client.tg.send_message(907409516, text)
 
-                    time.sleep(2)
-                    client.tg.send_message(112298936, text)
+                    # time.sleep(2)
+                    # client.tg.send_message(112298936, text)
 
         except Exception as e:
             print(coloring.red(f"[!] Error: {str(e)}"))
