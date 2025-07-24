@@ -1,4 +1,6 @@
 import argparse
+import datetime
+from pprint import pprint
 import time
 
 import coloring
@@ -12,47 +14,39 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     client = TgClient(args.phone)
-
-    gifts = client.get_available_gifts()
-    # cur_gifts_id = [g["id"] for g in gifts if g["remaining_count"] != 0]
+    
     cur_gifts_id = []
     while 1:
         try:
+            star_balance = client.get_stars()
             gifts = client.get_available_gifts()
-            new_gifts = [g for g in gifts if g["remaining_count"] != 0]
-            new_gifts_id = [g["id"] for g in new_gifts]
 
-            for ngi in new_gifts_id:
-                if ngi not in cur_gifts_id:
+            new_gifts = [g for g in gifts 
+                         if g["gift"]["remaining_count"] != 0
+                         ]
+                         
+            sorted_new_gifts = sorted(
+                new_gifts,
+                key=lambda x: x['gift']['star_count'],
+                reverse=True
+            )
 
-                    print("новый гифт")
-                    cur_gifts_id.append(ngi)
-                    gift = [ng for ng in new_gifts if ng["id"] == ngi][0]
+            for ng in sorted_new_gifts:
+                gift_id = ng["gift"]["id"]
+                gift_price = ng["gift"]['star_count']
 
-                    text = f"New Gift | {gift['star_count']} STARS"
+                if gift_id not in cur_gifts_id:
+                    cur_gifts_id.append(gift_id)
 
-                    time.sleep(2)
-                    client.tg.send_message(907409516, text)
-
-                    # time.sleep(2)
-                    # client.tg.send_message(112298936, text)
-
+                    print(datetime.datetime.now(), f"New Gift | {gift_price} STARS")
+                    if star_balance > gift_price:
+                        coloring.print_green('buy gift')
+                        print(client.send_gift(gift_id, client.user_id))
+                        break
+                    else:
+                        coloring.print_red("no stars for gift")
+                        
         except Exception as e:
             print(coloring.red(f"[!] Error: {str(e)}"))
         finally:
-            time.sleep(10)
-
-    # purchase_result = client.tg.call_method("starTransactionTypeGiftPurchase", {
-    #     "owner_id": 907409516,
-    #     # "gift": gift
-    # })
-    # purchase_result.wait()
-    #
-    # if purchase_result.error:
-    #     print(purchase_result.error_info)
-
-    # gifts = [Gift(**g) for g in m.update["gifts"]]
-    # select_gifts = [g for g in gifts if g.remaining_count != 0 and g.upgrade_star_count != 0]
-    #
-    # for g in select_gifts:
-    #     print(g.sticker.emoji, g.total_count, g.star_count, g.remaining_count)
+            time.sleep(1)

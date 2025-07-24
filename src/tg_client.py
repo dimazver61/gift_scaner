@@ -1,30 +1,76 @@
 import random
 import threading
 from urllib.parse import urlparse, parse_qs
-
+import platform
 from telegram.client import Telegram
 
 
 class TgClient:
     def __init__(self, phone, api_id=27107768, api_hash="18b0bf93dbf4d97d72024ca8ff40f66a"):
+        lib_path = "src/tdlib/win/tdjson.dll"
+
+        if "linux" in platform.platform().lower():
+            lib_path = "src/tdlib/linux/libtdjson.so"
+
         self.tg = Telegram(
             api_id=api_id,
             api_hash=api_hash,
             phone=phone,  # you can pass 'bot_token' instead
             database_encryption_key='',
             files_directory='_temp/',
-            library_path="src/tdlib/tdjson.dll",
+            library_path=lib_path,
             login=True
         )
         self.tg.get_chats(limit=500).wait()
 
         r = self.tg.get_me()
         r.wait()
+
+        self.user_id = r.update["id"]
         self.is_premium = r.update["is_premium"]
         self.slots_id = None
 
         if self.is_premium:
             self.slots_id = self.get_boost_slots_id()
+
+    def send_gift(self, gift_id, owner_id):
+        send_request = self.tg.call_method('sendGift',{
+            "gift_id": gift_id,
+            "owner_id": {
+                "@type": "messageSenderUser",
+                "user_id": owner_id
+            },
+            "is_private": True
+        })
+        send_request.wait()
+
+        if send_request.error:
+            raise Exception(send_request.error_info)
+
+        return send_request.update
+ 
+
+    def get_star_transactions(self, owner_id=0):
+        if owner_id == 0:
+            owner_id = self.user_id
+        
+        s = self.tg.call_method('getStarTransactions',{
+                "owner_id": {
+                    "@type": "messageSenderUser",
+                    "user_id": owner_id
+                }
+            }
+        )
+        s.wait()
+
+        if s.error:
+            raise Exception(s.error_info)
+
+        return s.update
+    
+    def get_stars(self):
+        star_amount = self.get_star_transactions()["star_amount"]
+        return star_amount["star_count"] + float("0." + str(star_amount["nanostar_count"]))
 
     def get_boost_slots_id(self):
         r = self.tg.call_method("getAvailableChatBoostSlots")
