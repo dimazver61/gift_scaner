@@ -17,7 +17,7 @@ class TgClient:
             api_hash=api_hash,
             phone=phone,  # you can pass 'bot_token' instead
             database_encryption_key='',
-            files_directory='_temp/',
+            files_directory=f'_temp/{phone}/',
             library_path=lib_path,
             login=True
         )
