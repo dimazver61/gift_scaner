@@ -20,20 +20,33 @@ if __name__ == '__main__':
             star_balance = client.get_stars()
             gifts = client.get_available_gifts()
 
+            # if "gift" in g:
+
             new_gifts = [
-                g for g in gifts if g["remaining_count"] != 0
+                g for g in gifts if g["gift"]["remaining_count"] != 0
+                # g for g in gifts if g["remaining_count"] != 0
                 # g for g in gifts if g["last_send_date"] == 0
             ]
 
+            # sorted_new_gifts = sorted(
+            #     new_gifts,
+            #     key=lambda x: x['gift']['star_count'],
+            #     reverse=True
+            # )
+
             sorted_new_gifts = sorted(
                 new_gifts,
-                key=lambda x: x['star_count'],
+                # key=lambda x: x['star_count'],
+                key=lambda x: x['gift']['star_count'],
                 reverse=True
             )
 
             for ng in sorted_new_gifts:
-                gift_id = ng["id"]
-                gift_price = ng['star_count']
+                # gift_id = ng["id"]
+                # gift_price = ng['star_count']
+
+                gift_id = ng["gift"]["id"]
+                gift_price = ng["gift"]['star_count']
 
                 if gift_id not in cur_gifts_id:
                     cur_gifts_id.append(gift_id)
