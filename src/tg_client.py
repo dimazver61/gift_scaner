@@ -34,7 +34,7 @@ class TgClient:
             self.slots_id = self.get_boost_slots_id()
 
     def send_gift(self, gift_id, owner_id):
-        send_request = self.tg.call_method('sendGift',{
+        send_request = self.tg.call_method('sendGift', {
             "gift_id": gift_id,
             "owner_id": {
                 "@type": "messageSenderUser",
@@ -48,26 +48,25 @@ class TgClient:
             raise Exception(send_request.error_info)
 
         return send_request.update
- 
 
     def get_star_transactions(self, owner_id=0):
         if owner_id == 0:
             owner_id = self.user_id
-        
-        s = self.tg.call_method('getStarTransactions',{
-                "owner_id": {
-                    "@type": "messageSenderUser",
-                    "user_id": owner_id
-                }
+
+        s = self.tg.call_method('getStarTransactions', {
+            "owner_id": {
+                "@type": "messageSenderUser",
+                "user_id": owner_id
             }
-        )
+        }
+                                )
         s.wait()
 
         if s.error:
             raise Exception(s.error_info)
 
         return s.update
-    
+
     def get_stars(self):
         star_amount = self.get_star_transactions()["star_amount"]
         return star_amount["star_count"] + float("0." + str(star_amount["nanostar_count"]))
